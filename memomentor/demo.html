@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoMentor Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+        .recording-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: #dc3545;
+            display: inline-block;
+            margin-right: 5px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .meeting-card {
+            transition: transform 0.2s;
+        }
+        .meeting-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="mb-4 d-flex justify-content-between align-items-center">
+            <h1 class="display-5 fw-bold text-primary">MemoMentor</h1>
+            <div>
+                <button class="btn btn-outline-primary me-2">Login</button>
+                <button class="btn btn-primary">Register</button>
+            </div>
+        </header>
+
+        <div class="row mb-5">
+            <div class="col-md-6">
+                <h2 class="display-6 fw-bold">Your Augment AI Meeting Assistant</h2>
+                <p class="lead my-4">
+                    Never miss important details from your meetings again. MemoMentor helps you capture, 
+                    transcribe, and summarize meetings while keeping you in control of the process.
+                </p>
+                <button class="btn btn-primary btn-lg me-3">Get Started</button>
+                <button class="btn btn-outline-primary btn-lg">Learn More</button>
+            </div>
+            <div class="col-md-6 d-flex align-items-center justify-content-center">
+                <div class="bg-light p-5 rounded-3 text-center">
+                    <h3 class="text-primary">Demo Image</h3>
+                    <p>Meeting assistant illustration would go here</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-12 text-center mb-4">
+                <h2>How It Works</h2>
+                <p class="text-muted">MemoMentor enhances your meeting experience in 3 simple steps</p>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="display-4 text-primary mb-3">1</div>
+                        <h5 class="card-title">Record Your Meeting</h5>
+                        <p class="card-text">
+                            Start recording your meeting through our simple interface. 
+                            Works with virtual and in-person meetings.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="display-4 text-primary mb-3">2</div>
+                        <h5 class="card-title">AI-Powered Analysis</h5>
+                        <p class="card-text">
+                            Our AI transcribes the conversation and identifies key points, 
+                            action items, and decisions.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="display-4 text-primary mb-3">3</div>
+                        <h5 class="card-title">Review & Refine</h5>
+                        <p class="card-text">
+                            You maintain control by reviewing and editing the AI-generated 
+                            summary before sharing it.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h3>Demo: Meeting Summary</h3>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5>Key Points</h5>
+                                <ul>
+                                    <li>The new product launch is scheduled for Q3 2023</li>
+                                    <li>Marketing team will prepare materials by end of next month</li>
+                                    <li>Budget has been approved for the initial campaign</li>
+                                    <li>Customer feedback from beta testing was largely positive</li>
+                                </ul>
+                                
+                                <h5>Decisions</h5>
+                                <ul>
+                                    <li>We will proceed with the social media campaign starting in August</li>
+                                    <li>The pricing model will remain as discussed in the previous meeting</li>
+                                    <li>We will hire two additional developers to support the launch</li>
+                                </ul>
+                                
+                                <h5>Action Items</h5>
+                                <ul>
+                                    <li><span class="text-primary">Sarah</span>: Finalize the marketing materials by July 15th</li>
+                                    <li><span class="text-primary">Michael</span>: Schedule follow-up meeting with the development team</li>
+                                    <li><span class="text-primary">Jessica</span>: Prepare the press release draft by next week</li>
+                                    <li><span class="text-primary">David</span>: Contact potential partners for the launch event</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h5>Meeting Details</h5>
+                                        <p><strong>Title:</strong> Product Launch Planning</p>
+                                        <p><strong>Date:</strong> June 15, 2023</p>
+                                        <p><strong>Duration:</strong> 45 minutes</p>
+                                        <p><strong>Participants:</strong> 6</p>
+                                        <div class="d-grid gap-2 mt-3">
+                                            <button class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-edit me-2"></i>
+                                                Edit Summary
+                                            </button>
+                                            <button class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-share-alt me-2"></i>
+                                                Share Summary
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2>Ready to Transform Your Meetings?</h2>
+                <p class="lead mb-4">
+                    Join thousands of professionals who are using MemoMentor to get more 
+                    value from their meetings.
+                </p>
+                <button class="btn btn-primary btn-lg">Get Started for Free</button>
+            </div>
+        </div>
+
+        <footer class="text-center py-4 text-muted">
+            <p>MemoMentor © 2023 - Augment AI Meeting Assistant</p>
+            <p class="small">Enhancing human capabilities, not replacing them</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

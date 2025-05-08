@@ -1,0 +1,32 @@
+{
+  "name": "memomentor-server",
+  "version": "1.0.0",
+  "description": "Backend server for MemoMentor - an Augment AI meeting assistant",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "augment-ai",
+    "meeting-assistant",
+    "transcription",
+    "summarization"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "langchain": "^0.0.75",
+    "mongoose": "^7.0.3",
+    "openai": "^4.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}

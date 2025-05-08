@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Server Connection Test</h1>
+    <p class="success">✅ Connection successful!</p>
+    
+    <div class="container">
+        <h2>Server Information</h2>
+        <p>This simple server is running on port 50000.</p>
+        <p>Current time: 4/26/2025, 12:13:49 PM</p>
+    </div>
+    
+    <div class="container">
+        <h2>Next Steps</h2>
+        <p>Now that we've confirmed the server is accessible, we can:</p>
+        <ul>
+            <li>Troubleshoot the main application server</li>
+            <li>Check for port conflicts</li>
+            <li>Verify network settings</li>
+        </ul>
+    </div>
+    
+    <script>
+        console.log('Page loaded successfully');
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add the current timestamp to show the page is dynamic
+            const timeElement = document.createElement('p');
+            timeElement.textContent = 'Page loaded at: ' + new Date().toLocaleTimeString();
+            document.body.appendChild(timeElement);
+        });
+    </script>
+</body>
+</html>

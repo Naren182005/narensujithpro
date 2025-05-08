@@ -1,0 +1,61 @@
+/* Custom styles for larger UI components */
+
+/* Make platform cards larger */
+.glass-card {
+  padding: 1.5rem !important;
+  margin-bottom: 1.5rem;
+}
+
+/* Make text areas larger */
+.Textarea {
+  min-height: 250px !important;
+  font-size: 1.1rem !important;
+  line-height: 1.6 !important;
+  padding: 1rem !important;
+}
+
+/* Make buttons larger */
+.Button {
+  padding: 0.75rem 1.5rem !important;
+  font-size: 1.1rem !important;
+}
+
+/* Make headings larger */
+h3 {
+  font-size: 1.5rem !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Make grid layout more spacious */
+.grid {
+  gap: 2rem !important;
+}
+
+/* Make content text larger */
+.text-base {
+  font-size: 1.1rem !important;
+  line-height: 1.6 !important;
+}
+
+/* Make platform icons larger */
+.h-6 {
+  height: 1.75rem !important;
+  width: 1.75rem !important;
+}
+
+/* Make textarea content more readable */
+textarea {
+  font-size: 1.1rem !important;
+  line-height: 1.6 !important;
+}
+
+/* Increase minimum height for content areas */
+.min-h-\[200px\] {
+  min-height: 250px !important;
+}
+
+/* Make the grid layout more spacious */
+.md\:grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 2rem !important;
+}

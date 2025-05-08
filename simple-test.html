@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+            text-align: center;
+            font-size: 24px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Test Page</h1>
+    <p class="success">✅ Connection successful!</p>
+    
+    <div class="container">
+        <h2>What's Working</h2>
+        <p>If you can see this page, your browser can successfully connect to a local web server.</p>
+        <p>This is a static HTML file being served by http-server.</p>
+    </div>
+    
+    <div class="container">
+        <h2>Troubleshooting Steps</h2>
+        <p>Since this simple server is working, the issue might be related to:</p>
+        <ul>
+            <li>Port conflicts with the main application</li>
+            <li>Configuration issues in Vite or Express</li>
+            <li>Firewall rules specific to certain ports</li>
+        </ul>
+    </div>
+    
+    <script>
+        // Add a timestamp to show the page is loaded fresh
+        document.addEventListener('DOMContentLoaded', function() {
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'container';
+            timeDiv.innerHTML = `
+                <h2>Page Information</h2>
+                <p>Page loaded at: ${new Date().toLocaleString()}</p>
+            `;
+            document.body.appendChild(timeDiv);
+        });
+    </script>
+</body>
+</html>

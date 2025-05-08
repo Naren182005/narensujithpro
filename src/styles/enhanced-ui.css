@@ -1,0 +1,405 @@
+/* Enhanced UI Styles */
+
+/* Login Page Animations and Effects */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(var(--primary-rgb), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0); }
+}
+
+@keyframes pulseSlow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s ease forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease forwards;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 3s infinite ease-in-out;
+}
+
+.shadow-glow {
+  box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.3);
+}
+
+/* Form Field Enhancements */
+.form-field-animated {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.form-field-animated input {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-field-animated input:focus {
+  border-color: rgba(var(--primary-rgb), 0.5);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+}
+
+.form-field-animated .field-icon {
+  transition: color 0.3s ease;
+}
+
+.form-field-animated:hover .field-icon {
+  color: rgba(var(--primary-rgb), 0.8);
+}
+
+/* Button Enhancements */
+.login-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+}
+
+.login-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: all 0.6s ease;
+}
+
+.login-button:hover::before {
+  left: 100%;
+}
+
+/* Social Login Buttons */
+.social-login-button {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(var(--border-rgb), 0.2);
+}
+
+.social-login-button:hover {
+  background-color: rgba(var(--primary-rgb), 0.05);
+  border-color: rgba(var(--primary-rgb), 0.3);
+  transform: translateY(-2px);
+}
+
+.google-button:hover {
+  border-color: #4285F4;
+  background-color: rgba(66, 133, 244, 0.05);
+}
+
+.facebook-button:hover {
+  border-color: #1877F2;
+  background-color: rgba(24, 119, 242, 0.05);
+}
+
+.apple-button:hover {
+  border-color: #000000;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive Card Styles */
+.glass-card {
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden !important;
+}
+
+.glass-card:hover {
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Platform Card Enhancements */
+.platform-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 400px;
+  max-height: 800px;
+  overflow: hidden;
+}
+
+/* Textarea Enhancements */
+.content-textarea {
+  transition: all 0.2s ease;
+  border-radius: 0.5rem;
+  resize: none;
+  overflow-y: auto;
+  min-height: 200px;
+  height: 100%;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.content-textarea:focus {
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.3);
+  border-color: rgba(var(--primary-rgb), 0.5);
+}
+
+/* Button Animations and Enhancements */
+.animated-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.animated-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.animated-button:active {
+  transform: translateY(1px);
+}
+
+.animated-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+.animated-button:hover::after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(100, 100);
+    opacity: 0;
+  }
+}
+
+/* Generate Button Animation */
+.generate-button {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.generate-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+}
+
+.generate-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: all 0.6s ease;
+}
+
+.generate-button:hover::before {
+  left: 100%;
+}
+
+/* Post Button Animation */
+.post-button {
+  transition: all 0.3s ease;
+}
+
+.post-button:hover .post-icon {
+  transform: translateX(4px);
+}
+
+/* Tab Animations */
+.tab-transition {
+  transition: all 0.3s ease;
+}
+
+.tab-transition:hover {
+  background-color: rgba(var(--primary-rgb), 0.1);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .platform-card {
+    min-height: 350px;
+  }
+
+  .content-textarea {
+    min-height: 150px;
+    font-size: 0.9rem;
+  }
+
+  .button-text {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .glass-card {
+    padding: 1rem !important;
+  }
+
+  .platform-card {
+    min-height: 300px;
+  }
+
+  .content-textarea {
+    min-height: 120px;
+    padding: 0.75rem !important;
+  }
+
+  .button-container {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .button-container button {
+    width: 100%;
+  }
+}
+
+/* Animation for content loading */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+/* Pulse animation for generating state */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(var(--primary-rgb), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0);
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Platform-specific colors with hover effects */
+.linkedin-card:hover {
+  border-color: #0077b5;
+}
+
+.instagram-card:hover {
+  border-color: #e1306c;
+}
+
+.facebook-card:hover {
+  border-color: #1877f2;
+}
+
+.twitter-card:hover {
+  border-color: #1da1f2;
+}
+
+.youtube-card:hover {
+  border-color: #ff0000;
+}
+
+/* Improved scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--primary-rgb), 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--primary-rgb), 0.5);
+}
