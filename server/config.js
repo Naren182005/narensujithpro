@@ -1,11 +1,14 @@
+// Load environment variables
+require('dotenv').config();
+
 // MongoDB Atlas configuration
 module.exports = {
-  // Direct MongoDB URI with the new connection string
-  mongoURI: 'mongodb+srv://narenkg2023aiml:Naren20052008@narensocialsync.j4rq2fe.mongodb.net/socialmuse?retryWrites=true&w=majority',
+  // Use MongoDB URI from environment variables
+  mongoURI: process.env.MONGODB_URI || 'mongodb+srv://narenkg2023aiml:Naren%402005@socialsync.rg2okua.mongodb.net/socialmuse',
 
   // JWT secret for authentication
-  jwtSecret: 'your-secret-key-change-this-in-production',
+  jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-this-in-production',
 
   // Server port
-  port: process.env.PORT || 3000
+  port: process.env.PORT || 3001
 };

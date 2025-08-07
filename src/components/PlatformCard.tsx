@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { MediaUpload } from './MediaUpload';
-import { GenerateButton } from './GenerateButton';
 import {
   Facebook,
   Instagram,
@@ -21,7 +20,8 @@ import {
   Link as LinkIcon,
   Hash,
   Lightbulb,
-  Loader2
+  Loader2,
+  CheckCircle2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -100,171 +100,235 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
   const handleImageUpload = (file: File) => {
     console.log(`Uploading image for ${platform}:`, file);
     setUploadedMedia(prev => ({ ...prev, image: file }));
-    // Here you would typically upload the file to your backend
   };
 
   const handleVideoUpload = (file: File) => {
     console.log(`Uploading video for ${platform}:`, file);
     setUploadedMedia(prev => ({ ...prev, video: file }));
-    // Here you would typically upload the file to your backend
   };
 
   return (
     <div className={cn(
-      'glass-card rounded-2xl p-6 platform-card',
+      'bg-white dark:bg-gray-900 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 overflow-hidden',
+      'w-full max-w-sm mx-auto aspect-[5/6] flex flex-col', // Perfect square-like aspect ratio (slightly taller)
       `${platform}-card`,
       className
     )}>
-      <div className="flex flex-wrap justify-between items-center mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Icon className={cn("h-6 w-6", colorClass)} />
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 px-4 py-3 border-b border-gray-200 dark:border-gray-600 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className={cn(
+              "w-10 h-10 rounded-lg flex items-center justify-center shadow-sm flex-shrink-0",
+              platform === 'linkedin' && "bg-blue-100 dark:bg-blue-900/30",
+              platform === 'instagram' && "bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30",
+              platform === 'facebook' && "bg-blue-100 dark:bg-blue-900/30",
+              platform === 'youtube' && "bg-red-100 dark:bg-red-900/30"
+            )}>
+              <Icon className={cn("h-6 w-6", colorClass)} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className={cn("font-bold text-base truncate", colorClass)}>{name}</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Create & publish</p>
+            </div>
           </div>
-          <h3 className={cn("font-semibold text-lg", colorClass)}>{name}</h3>
+          <div className="flex items-center flex-shrink-0 ml-2">
+            <MediaUpload
+              platformName={platform}
+              onImageUpload={handleImageUpload}
+              onVideoUpload={handleVideoUpload}
+              supportedTypes={platformMediaSupport[platform]}
+            />
+          </div>
         </div>
-        <MediaUpload
-          platformName={platform}
-          onImageUpload={handleImageUpload}
-          onVideoUpload={handleVideoUpload}
-          supportedTypes={platformMediaSupport[platform]}
-        />
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList className="grid grid-cols-2 mb-4">
-          <TabsTrigger value="compose" className="text-sm py-2 tab-transition">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Compose</span>
-            <span className="sm:hidden">Write</span>
-          </TabsTrigger>
-          <TabsTrigger value="post" className="text-sm py-2 tab-transition">
-            <Send className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Preview & Post</span>
-            <span className="sm:hidden">Post</span>
-          </TabsTrigger>
-        </TabsList>
+      {/* Content Section */}
+      <div className="flex-1 flex flex-col p-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col h-full">
+          <TabsList className="grid grid-cols-2 mb-3 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 h-9 flex-shrink-0">
+            <TabsTrigger
+              value="compose"
+              className="flex items-center justify-center gap-1 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-gray-700 transition-all duration-200 font-medium text-xs py-1.5"
+            >
+              <Wand2 className="h-3 w-3" />
+              <span>Compose</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="post"
+              className="flex items-center justify-center gap-1 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-gray-700 transition-all duration-200 font-medium text-xs py-1.5"
+            >
+              <MessageSquare className="h-3 w-3" />
+              <span>Preview</span>
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="compose" className="flex-1 flex flex-col space-y-3 mt-0 fade-in">
-          <div className="relative flex-1 flex flex-col">
-            <Textarea
-              value={content}
-              onChange={(e) => onContentChange(e.target.value)}
-              placeholder={placeholder}
-              className="content-textarea bg-background/50 p-4 md:p-6 flex-1"
-            />
-            {content && (
-              <div className="absolute bottom-3 right-3 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded-md">
-                {content.length} characters
+          <TabsContent value="compose" className="flex-1 flex flex-col space-y-2 mt-0 h-full">
+            <div className="relative flex-1 flex flex-col min-h-0">
+              <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex-shrink-0">
+                Content for {name}
+              </label>
+              <div className="relative flex-1 min-h-0">
+                <Textarea
+                  value={content}
+                  onChange={(e) => onContentChange(e.target.value)}
+                  placeholder={placeholder}
+                  className="w-full h-full min-h-[100px] max-h-[120px] resize-none border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm leading-relaxed focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm"
+                />
+                {content && (
+                  <div className="absolute bottom-2 right-2 text-xs text-gray-500 bg-white dark:bg-gray-800 px-2 py-1 rounded-md shadow-sm border border-gray-200 dark:border-gray-600">
+                    {content.length}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </div>
 
-          <div className="flex flex-wrap gap-3 mt-auto pt-3 border-t border-border/50 justify-between button-container">
-            <div>
+            <div className="flex-shrink-0 pt-3 border-t border-gray-200 dark:border-gray-600">
               {isGenerating && (
-                <div className="flex items-center gap-2 text-muted-foreground pulse">
-                  <Loader2 className="h-5 w-5 spin" />
-                  <span>Generating content...</span>
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-3">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span className="text-xs">Generating content...</span>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  disabled={isGenerating}
+                  className="flex-1 px-3 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md text-sm"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="h-3.5 w-3.5 mr-1.5" />
+                      Generate
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={onPostContent}
+                  disabled={!content.trim()}
+                  className={cn(
+                    "flex-1 px-3 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl text-sm",
+                    platform === 'linkedin' && "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white",
+                    platform === 'instagram' && "bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 hover:from-purple-700 hover:via-pink-700 hover:to-red-700 text-white",
+                    platform === 'facebook' && "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white",
+                    platform === 'youtube' && "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
+                  )}
+                >
+                  <Send className="h-3.5 w-3.5 mr-1.5" />
+                  Post
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="post" className="flex-1 flex flex-col space-y-2 mt-0 h-full">
+            {/* Post Preview Header */}
+            <div className="flex items-center justify-between flex-shrink-0 mb-1">
+              <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200">Post Preview</h4>
+              {content && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 shadow-sm">
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  Ready
+                </span>
+              )}
+            </div>
+
+            {/* Mock Social Media Post */}
+            <div className={cn(
+              "flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col min-h-0"
+            )}>
+              {/* Post Header */}
+              <div className="flex items-center gap-3 p-3 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+                <div className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center shadow-sm flex-shrink-0",
+                  platform === 'linkedin' && "bg-blue-100 dark:bg-blue-900/30",
+                  platform === 'instagram' && "bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30",
+                  platform === 'facebook' && "bg-blue-100 dark:bg-blue-900/30",
+                  platform === 'youtube' && "bg-red-100 dark:bg-red-900/30"
+                )}>
+                  <Icon className={cn("h-5 w-5", colorClass)} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">Your {name} Account</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Just now</div>
+                </div>
+              </div>
+
+              {/* Post Content */}
+              <div className="flex-1 p-3 min-h-0 overflow-auto">
+                {content ? (
+                  <div className="text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap text-sm">
+                    {content}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-400 dark:text-gray-500 flex-1 flex flex-col items-center justify-center">
+                    <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm font-medium mb-1">No content yet</p>
+                    <p className="text-xs">Switch to Compose tab</p>
+                  </div>
+                )}
+
+                {/* Media Attachments */}
+                {(uploadedMedia.image || uploadedMedia.video) && (
+                  <div className="mt-2 space-y-2">
+                    {uploadedMedia.image && (
+                      <div className="relative group">
+                        <div className="w-full h-24 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-lg flex items-center justify-center border border-gray-200 dark:border-gray-600 overflow-hidden">
+                          <div className="text-center p-2">
+                            <Image className="h-6 w-6 text-gray-400 mx-auto mb-1" />
+                            <span className="text-xs text-gray-500 font-medium truncate">{uploadedMedia.image.name}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {uploadedMedia.video && (
+                      <div className="relative group">
+                        <div className="w-full h-24 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-lg flex items-center justify-center border border-gray-200 dark:border-gray-600 overflow-hidden">
+                          <div className="text-center p-2">
+                            <Video className="h-6 w-6 text-gray-400 mx-auto mb-1" />
+                            <span className="text-xs text-gray-500 font-medium truncate">{uploadedMedia.video.name}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Post Interactions */}
+              {content && (
+                <div className="px-3 py-2.5 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex-shrink-0">
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-4">
+                      <button className="flex items-center gap-1.5 hover:text-blue-600 transition-colors">
+                        <Sparkles className="h-3 w-3" />
+                        <span>Like</span>
+                      </button>
+                      <button className="flex items-center gap-1.5 hover:text-blue-600 transition-colors">
+                        <MessageSquare className="h-3 w-3" />
+                        <span>Comment</span>
+                      </button>
+                      <button className="flex items-center gap-1.5 hover:text-blue-600 transition-colors">
+                        <Send className="h-3 w-3" />
+                        <span>Share</span>
+                      </button>
+                    </div>
+                    <div className="text-xs font-medium text-green-600 dark:text-green-400">
+                      Ready
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
-            <Button
-              onClick={onPostContent}
-              className="post-button bg-gradient-to-r from-primary to-accent hover:shadow-lg animated-button"
-              disabled={!content.trim()}
-            >
-              <Send className="h-5 w-5 mr-2 post-icon transition-transform duration-300" />
-              <span className="button-text">Post to {name}</span>
-            </Button>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="post" className="flex-1 flex flex-col space-y-3 mt-0 fade-in">
-          <div className="bg-background/30 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300">
-            <div className="flex flex-col sm:flex-row items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <Icon className={cn("h-6 w-6", colorClass)} />
-              </div>
-              <div className="flex-1 w-full">
-                <div className="font-medium text-base flex items-center gap-2">
-                  <span>Your {name} Post</span>
-                  {content && <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">Ready to publish</span>}
-                </div>
-                <div className="text-base mt-2 whitespace-pre-wrap leading-relaxed bg-background/50 p-3 rounded-md border border-border/30 max-h-[200px] overflow-y-auto">
-                  {content || <span className="text-muted-foreground italic">No content yet. Switch to Compose tab to create content.</span>}
-                </div>
-
-                {uploadedMedia.image && (
-                  <div className="mt-3 relative">
-                    <div className="w-full h-32 bg-muted rounded-md flex items-center justify-center border border-border/30 hover:border-primary/30 transition-colors">
-                      <Image className="h-6 w-6 text-muted-foreground" />
-                      <span className="ml-2 text-xs text-muted-foreground">{uploadedMedia.image.name}</span>
-                    </div>
-                  </div>
-                )}
-
-                {uploadedMedia.video && (
-                  <div className="mt-3 relative">
-                    <div className="w-full h-32 bg-muted rounded-md flex items-center justify-center border border-border/30 hover:border-primary/30 transition-colors">
-                      <Video className="h-6 w-6 text-muted-foreground" />
-                      <span className="ml-2 text-xs text-muted-foreground">{uploadedMedia.video.name}</span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex flex-wrap items-center gap-3 mt-3 text-xs">
-                  <button className="flex items-center gap-1 bg-background/80 hover:bg-background transition-colors px-2 py-1 rounded-md">
-                    <Image className="h-3 w-3" />
-                    <span>Add Media</span>
-                  </button>
-                  <button className="flex items-center gap-1 bg-background/80 hover:bg-background transition-colors px-2 py-1 rounded-md">
-                    <LinkIcon className="h-3 w-3" />
-                    <span>Add Link</span>
-                  </button>
-                  <button className="flex items-center gap-1 bg-background/80 hover:bg-background transition-colors px-2 py-1 rounded-md">
-                    <Hash className="h-3 w-3" />
-                    <span>Add Hashtags</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium">Post Settings</span>
-              <span className="text-xs text-primary cursor-pointer hover:underline">Advanced options</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="bg-background/30 p-3 rounded-lg hover:bg-background/50 transition-colors cursor-pointer border border-border/20">
-                <div className="flex items-center gap-2">
-                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Lightbulb className="h-3 w-3 text-primary" />
-                  </div>
-                  <span className="text-xs font-medium">Schedule Post</span>
-                </div>
-              </div>
-              <div className="bg-background/30 p-3 rounded-lg hover:bg-background/50 transition-colors cursor-pointer border border-border/20">
-                <div className="flex items-center gap-2">
-                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Lightbulb className="h-3 w-3 text-primary" />
-                  </div>
-                  <span className="text-xs font-medium">Audience Settings</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <Button
-            onClick={onPostContent}
-            className="mt-auto animated-button text-base py-6 bg-gradient-to-r from-primary to-accent"
-            disabled={!content.trim()}
-          >
-            <Send className="h-5 w-5 mr-2 post-icon transition-transform duration-300" />
-            <span className="button-text">Post to {name}</span>
-          </Button>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };

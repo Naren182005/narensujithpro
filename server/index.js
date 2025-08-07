@@ -9,6 +9,7 @@ const connectDB = require('./db/mongoose');
 // Import routes
 const userRoutes = require('./routes/users');
 const socialAccountRoutes = require('./routes/social-accounts');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 const PORT = config.port;
@@ -55,18 +56,18 @@ const createDefaultUser = async () => {
   }
 };
 
-// Connect to MongoDB first, then create the default user
+// Try to connect to MongoDB, but don't fail if it's not available
 connectDB().then(async (conn) => {
-  console.log('MongoDB connection successful');
+  console.log('✅ Database connection successful');
 
   // Log database information
-  console.log(`Connected to database: ${conn.connection.name}`);
-  console.log(`MongoDB server: ${conn.connection.host}:${conn.connection.port}`);
+  console.log(`   Database: ${conn.connection.name}`);
+  console.log(`   Server: ${conn.connection.host}:${conn.connection.port}`);
 
   try {
     // List all collections
     const collections = await conn.connection.db.listCollections().toArray();
-    console.log('Available collections:', collections.map(c => c.name).join(', ') || 'None');
+    console.log(`   Collections: ${collections.map(c => c.name).join(', ') || 'None'}`);
   } catch (err) {
     console.error('Error listing collections:', err.message);
   }
@@ -74,13 +75,12 @@ connectDB().then(async (conn) => {
   // Call the function to create the default user after successful connection
   await createDefaultUser();
 
-  console.log('Server initialization complete');
+  console.log('✅ Server initialization complete with database');
 }).catch(err => {
-  console.error('Failed to connect to MongoDB:', err);
-  console.error('Error details:', err.message);
-  if (err.stack) {
-    console.error('Stack trace:', err.stack);
-  }
+  console.error('⚠️ Database connection failed, starting server without database');
+  console.error(`   Error: ${err.message}`);
+  console.log('   Server will still start and handle requests');
+  console.log('   Google authentication will work with temporary storage');
 });
 
 // Middleware
@@ -96,6 +96,7 @@ app.get('/api/health', (req, res) => {
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/social-accounts', socialAccountRoutes);
+app.use('/api/auth', authRoutes);
 
 // Content generation API
 app.post('/api/generate', (req, res) => {

@@ -1,7 +1,20 @@
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
-import './styles/custom.css' // Import custom styles for larger UI components
-import './styles/enhanced-ui.css' // Import enhanced UI styles for responsiveness and animations
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import App from './App';
+import config from './config';
+import './index.css';
 
-createRoot(document.getElementById("root")!).render(<App />);
+
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <GoogleOAuthProvider
+      clientId={config.googleClientId}
+      onScriptLoadError={() => console.error('Google OAuth script failed to load')}
+      onScriptLoadSuccess={() => console.log('Google OAuth script loaded successfully')}
+    >
+      <App />
+    </GoogleOAuthProvider>
+  </React.StrictMode>
+);

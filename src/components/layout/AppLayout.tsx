@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { useAuth } from '@/contexts/AuthContext';
 import config from '@/config';
 
 interface NavItemProps {
@@ -43,18 +44,20 @@ const AppLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const { isAuthenticated, user, logout, isLoading } = useAuth();
 
-  // Check authentication status
+  // Redirect to login if not authenticated (with a small delay to allow for state updates)
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    setIsAuthenticated(!!token);
+    if (!isAuthenticated && !isLoading && location.pathname !== '/login') {
+      const timer = setTimeout(() => {
+        if (!isAuthenticated && !isLoading && location.pathname !== '/login') {
+          navigate('/login');
+        }
+      }, 300);
 
-    // Redirect to login if not authenticated
-    if (!token && !location.pathname.includes('/login') && !location.pathname.includes('/register')) {
-      navigate('/login');
+      return () => clearTimeout(timer);
     }
-  }, [location.pathname, navigate]);
+  }, [isAuthenticated, isLoading, navigate, location.pathname]);
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -62,10 +65,21 @@ const AppLayout: React.FC = () => {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    setIsAuthenticated(false);
+    logout();
     navigate('/login');
   };
+
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const navItems = [
     { icon: <Home className="h-4 w-4" />, label: 'Dashboard', path: '/' },
@@ -82,14 +96,17 @@ const AppLayout: React.FC = () => {
           icon={item.icon}
           label={item.label}
           path={item.path}
-          active={location.pathname === item.path}
           onClick={closeMenu}
+          active={location.pathname === item.path}
         />
       ))}
       <Button
         variant="ghost"
-        className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
-        onClick={handleLogout}
+        className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+        onClick={() => {
+          handleLogout();
+          if (closeMenu) closeMenu();
+        }}
       >
         <LogOut className="h-4 w-4" />
         <span className="ml-2">Logout</span>

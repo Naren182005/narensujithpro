@@ -16,6 +16,7 @@ type EnvironmentConfig = {
   };
   socialPlatforms: string[];
   googleApiKey?: string;
+  googleClientId: string;
   features: {
     enableTwitter: boolean;
     enableFacebook: boolean;
@@ -46,6 +47,7 @@ const config: AppConfig = {
     },
     socialPlatforms: ['linkedin', 'instagram', 'facebook', 'youtube'],
     googleApiKey: 'AIzaSyCJRSVvyiZ0emsCQankfDv70gsVoCdsbyY',
+    googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '763549280829-chb0u2g8vbc3uflojo61dua7832bdivd.apps.googleusercontent.com',
     features: {
       enableTwitter: false, // Removed as per user preference
       enableFacebook: true, // Enabled as per user request
@@ -58,7 +60,7 @@ const config: AppConfig = {
   },
   production: {
     apiBaseUrl: '/api', // In production, use relative URLs to avoid CORS issues
-    frontendUrl: window.location.origin,
+    frontendUrl: typeof window !== 'undefined' ? window.location.origin : '',
     appName: 'SocialMuse',
     defaultUserProfile: {
       name: 'naren',
@@ -67,6 +69,7 @@ const config: AppConfig = {
     },
     socialPlatforms: ['linkedin', 'instagram', 'facebook', 'youtube'],
     googleApiKey: 'AIzaSyCJRSVvyiZ0emsCQankfDv70gsVoCdsbyY',
+    googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '763549280829-chb0u2g8vbc3uflojo61dua7832bdivd.apps.googleusercontent.com',
     features: {
       enableTwitter: false,
       enableFacebook: true,
@@ -88,6 +91,7 @@ const config: AppConfig = {
     },
     socialPlatforms: ['linkedin', 'instagram', 'facebook', 'youtube'],
     googleApiKey: 'AIzaSyCJRSVvyiZ0emsCQankfDv70gsVoCdsbyY',
+    googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '763549280829-chb0u2g8vbc3uflojo61dua7832bdivd.apps.googleusercontent.com',
     features: {
       enableTwitter: false,
       enableFacebook: true,

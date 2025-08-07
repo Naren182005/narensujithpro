@@ -45,8 +45,8 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex gap-2 items-center">
+    <div className="space-y-1">
+      <div className="flex gap-1.5 items-center justify-end">
         {supportedTypes.includes('image') && (
           <div>
             <input
@@ -60,12 +60,12 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                className="group"
+                className="group h-8 px-2"
                 asChild
               >
                 <span className="cursor-pointer">
-                  <ImageIcon className="h-4 w-4 mr-1 group-hover:scale-110 transition-transform" />
-                  Image
+                  <ImageIcon className="h-3 w-3 mr-1 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs">Image</span>
                 </span>
               </Button>
             </label>
@@ -85,12 +85,12 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                className="group"
+                className="group h-8 px-2"
                 asChild
               >
                 <span className="cursor-pointer">
-                  <VideoIcon className="h-4 w-4 mr-1 group-hover:scale-110 transition-transform" />
-                  Video
+                  <VideoIcon className="h-3 w-3 mr-1 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs">Video</span>
                 </span>
               </Button>
             </label>

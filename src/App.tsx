@@ -8,15 +8,20 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import AppLayout from '@/components/layout/AppLayout';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 // Eager loaded components
 import Login from "./pages/Login";
+import CleanLogin from "./pages/CleanLogin";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
+import Index from "./pages/Index";
 
 // Lazy-loaded components for better performance
-const Index = lazy(() => import('./pages/Index'));
+// const Index = lazy(() => import('./pages/Index'));
 const Account = lazy(() => import('./pages/Account'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Settings = lazy(() => import('./pages/Settings'));
@@ -45,14 +50,17 @@ const App = () => (
       <ThemeProvider defaultTheme="system" storageKey="socialmuse-theme">
         <HelmetProvider>
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Suspense fallback={<Loading />}>
+            <AuthProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Suspense fallback={<Loading />}>
                 <Routes>
                 {/* Auth routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/auth-success" element={<AuthCallback />} />
                 <Route path="/auth-error" element={<AuthCallback />} />
@@ -68,9 +76,10 @@ const App = () => (
 
                 {/* 404 route */}
                 <Route path="*" element={<NotFound />} />
-              </Routes>
-              </Suspense>
-            </BrowserRouter>
+                </Routes>
+                </Suspense>
+              </BrowserRouter>
+            </AuthProvider>
           </TooltipProvider>
         </HelmetProvider>
       </ThemeProvider>

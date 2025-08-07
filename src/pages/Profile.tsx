@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Key, Save, Loader2 } from 'lucide-react';
+import { User, Mail, Key, Save, Loader2, LogOut } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { handleError } from '@/lib/error-handler';
+import { enhancedAuthService } from '@/lib/enhanced-auth';
 import config from '@/config';
 
 const Profile: React.FC = () => {
@@ -19,10 +20,11 @@ const Profile: React.FC = () => {
   
   // User profile state
   const [profile, setProfile] = useState({
-    name: config.defaultUserProfile.name,
-    email: config.defaultUserProfile.email,
-    username: config.defaultUserProfile.username,
-    avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(config.defaultUserProfile.name)}&background=random`
+    name: '',
+    email: '',
+    username: '',
+    avatar: '',
+    loginMethod: 'email' as 'email' | 'google'
   });
   
   // Password change state
@@ -36,20 +38,27 @@ const Profile: React.FC = () => {
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        // In a real app, this would be an API call
-        // const response = await auth.getProfile();
-        // setProfile(response);
-        
-        // For now, we'll use the default profile from config
-        const userProfile = localStorage.getItem('userProfile');
-        if (userProfile) {
-          const parsedProfile = JSON.parse(userProfile);
+        // Check if user is authenticated
+        if (!enhancedAuthService.isAuthenticated()) {
+          toast.error('Please log in to view your profile');
+          navigate('/login');
+          return;
+        }
+
+        // Get current user from enhanced auth service
+        const currentUser = enhancedAuthService.getCurrentUser();
+        if (currentUser) {
           setProfile({
-            name: parsedProfile.name || config.defaultUserProfile.name,
-            email: parsedProfile.email || config.defaultUserProfile.email,
-            username: parsedProfile.username || config.defaultUserProfile.username,
-            avatar: parsedProfile.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(config.defaultUserProfile.name)}&background=random`
+            name: currentUser.name,
+            email: currentUser.email,
+            username: currentUser.email.split('@')[0], // Generate username from email
+            avatar: currentUser.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=random`,
+            loginMethod: currentUser.loginMethod
           });
+        } else {
+          // No user found, redirect to login
+          toast.error('Please log in to view your profile');
+          navigate('/login');
         }
       } catch (error) {
         handleError(error);
@@ -59,33 +68,36 @@ const Profile: React.FC = () => {
     loadProfile();
   }, []);
   
+  // Handle logout
+  const handleLogout = () => {
+    enhancedAuthService.logout();
+    toast.success('Logged out successfully');
+    navigate('/login');
+  };
+
   // Handle profile update
   const handleProfileUpdate = async () => {
     try {
       setIsLoading(true);
-      
+
       // Validate inputs
-      if (!profile.name.trim() || !profile.email.trim() || !profile.username.trim()) {
-        toast.error('All fields are required');
+      if (!profile.name.trim() || !profile.email.trim()) {
+        toast.error('Name and email are required');
         return;
       }
-      
-      // In a real app, this would be an API call
-      // const response = await auth.updateProfile(profile);
-      
-      // Simulate API call with a delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update localStorage
-      const userProfile = {
+
+      // Use enhanced auth service to update profile
+      const response = await enhancedAuthService.updateProfile({
         name: profile.name,
         email: profile.email,
-        username: profile.username,
         picture: profile.avatar
-      };
-      localStorage.setItem('userProfile', JSON.stringify(userProfile));
-      
-      toast.success('Profile updated successfully');
+      });
+
+      if (response.success) {
+        toast.success(response.message || 'Profile updated successfully');
+      } else {
+        throw new Error(response.message || 'Failed to update profile');
+      }
     } catch (error) {
       handleError(error);
     } finally {
@@ -114,20 +126,24 @@ const Profile: React.FC = () => {
         return;
       }
       
-      // In a real app, this would be an API call
-      // const response = await auth.changePassword(passwordData);
-      
-      // Simulate API call with a delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Reset form
-      setPasswordData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      
-      toast.success('Password changed successfully');
+      // Use enhanced auth service to change password
+      const response = await enhancedAuthService.changePassword(
+        passwordData.currentPassword,
+        passwordData.newPassword
+      );
+
+      if (response.success) {
+        // Reset form
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+
+        toast.success(response.message || 'Password changed successfully');
+      } else {
+        throw new Error(response.message || 'Failed to change password');
+      }
     } catch (error) {
       handleError(error);
     } finally {
@@ -167,6 +183,15 @@ const Profile: React.FC = () => {
                 <div className="space-y-1">
                   <h3 className="font-medium">{profile.name}</h3>
                   <p className="text-sm text-muted-foreground">{profile.email}</p>
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      profile.loginMethod === 'google'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {profile.loginMethod === 'google' ? '🔗 Google Account' : '📧 Email Account'}
+                    </span>
+                  </div>
                 </div>
               </div>
               
@@ -214,7 +239,15 @@ const Profile: React.FC = () => {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end">
+            <CardFooter className="flex justify-between">
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
               <Button onClick={handleProfileUpdate} disabled={isLoading}>
                 {isLoading ? (
                   <>
@@ -241,6 +274,20 @@ const Profile: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {profile.loginMethod === 'google' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <p className="text-sm text-blue-800 font-medium">
+                      Google Account
+                    </p>
+                  </div>
+                  <p className="text-xs text-blue-600 mt-1">
+                    You signed in with Google. You can still set a password for additional security.
+                  </p>
+                </div>
+              )}
+
               <div className="grid gap-2">
                 <Label htmlFor="current-password">Current Password</Label>
                 <div className="relative">
@@ -249,6 +296,7 @@ const Profile: React.FC = () => {
                     id="current-password"
                     type="password"
                     className="pl-10"
+                    placeholder={profile.loginMethod === 'google' ? 'Leave empty if you don\'t have a password' : 'Enter current password'}
                     value={passwordData.currentPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                   />
@@ -263,12 +311,13 @@ const Profile: React.FC = () => {
                     id="new-password"
                     type="password"
                     className="pl-10"
+                    placeholder="Enter new password (min. 6 characters)"
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                   />
                 </div>
               </div>
-              
+
               <div className="grid gap-2">
                 <Label htmlFor="confirm-password">Confirm New Password</Label>
                 <div className="relative">
@@ -277,10 +326,25 @@ const Profile: React.FC = () => {
                     id="confirm-password"
                     type="password"
                     className="pl-10"
+                    placeholder="Confirm your new password"
                     value={passwordData.confirmPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                   />
                 </div>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <p className="text-sm text-gray-700 font-medium">Password Requirements:</p>
+                <ul className="text-xs text-gray-600 mt-1 space-y-1">
+                  <li className={`flex items-center gap-2 ${passwordData.newPassword.length >= 6 ? 'text-green-600' : ''}`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${passwordData.newPassword.length >= 6 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    At least 6 characters
+                  </li>
+                  <li className={`flex items-center gap-2 ${passwordData.newPassword === passwordData.confirmPassword && passwordData.newPassword ? 'text-green-600' : ''}`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${passwordData.newPassword === passwordData.confirmPassword && passwordData.newPassword ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    Passwords match
+                  </li>
+                </ul>
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">

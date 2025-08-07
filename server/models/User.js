@@ -12,12 +12,37 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: function() {
+      // Password is only required if not using Google auth
+      return !this.googleId;
+    },
     minlength: 6,
   },
   name: {
     type: String,
     trim: true,
+  },
+  // Google OAuth fields
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows multiple null values
+  },
+  profilePicture: {
+    type: String,
+  },
+  emailVerified: {
+    type: Boolean,
+    default: false,
+  },
+  loginMethod: {
+    type: String,
+    enum: ['email', 'google', 'phone'],
+    default: 'email',
+  },
+  lastLogin: {
+    type: Date,
+    default: Date.now,
   },
   confirmationCodes: {
     type: Map,
@@ -110,7 +135,8 @@ const UserSchema = new mongoose.Schema({
 UserSchema.pre('save', async function (next) {
   const user = this;
 
-  if (user.isModified('password')) {
+  // Only hash password if it exists and is modified
+  if (user.password && user.isModified('password')) {
     user.password = await bcrypt.hash(user.password, 8);
   }
 
@@ -177,10 +203,17 @@ UserSchema.statics.findByCredentials = async (email, password) => {
     throw new Error('Invalid login credentials');
   }
 
-  const isMatch = await bcrypt.compare(password, user.password);
+  // If user uses Google auth, they don't have a password
+  if (user.loginMethod === 'google' && !user.password) {
+    throw new Error('Please use Google login for this account');
+  }
 
-  if (!isMatch) {
-    throw new Error('Invalid login credentials');
+  // If user has a password, verify it
+  if (user.password) {
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new Error('Invalid login credentials');
+    }
   }
 
   return user;
