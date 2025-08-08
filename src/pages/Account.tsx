@@ -70,13 +70,36 @@ const Account = () => {
 
   const navigate = useNavigate();
 
-  // Mock user data - in a real app, this would come from your authentication system
-  const [userData, setUserData] = useState({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    bio: 'Content creator and social media enthusiast',
-    website: 'https://example.com',
-    avatarUrl: '',
+  // Get real user data from localStorage/authentication
+  const [userData, setUserData] = useState(() => {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+
+      // Merge user data from different sources
+      const user = { ...currentUser, ...userProfile };
+
+      return {
+        name: user.name || 'User',
+        email: user.email || 'user@example.com',
+        bio: user.bio || 'SocialMuse user',
+        website: user.website || '',
+        avatarUrl: user.picture || user.avatar || '',
+        authProvider: user.authProvider || user.loginMethod || 'email',
+        isVerified: user.emailVerified || user.verified_email || false,
+      };
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      return {
+        name: 'User',
+        email: 'user@example.com',
+        bio: 'SocialMuse user',
+        website: '',
+        avatarUrl: '',
+        authProvider: 'email',
+        isVerified: false,
+      };
+    }
   });
 
   // Initialize profile form
@@ -232,16 +255,16 @@ const Account = () => {
   const connectedAccountsCount = Object.values(authStatus).filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b border-slate-600/50 bg-slate-800/80 backdrop-blur-xl supports-[backdrop-filter]:bg-slate-800/80">
         <div className="container flex h-14 items-center">
           <div className="mr-4 flex">
             <Link to="/" className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
                 <Sparkles className="h-5 w-5 text-primary" />
               </div>
-              <span className="font-bold">SocialMuse</span>
+              <span className="font-bold text-gray-100">SocialMuse</span>
             </Link>
           </div>
           <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
@@ -256,17 +279,25 @@ const Account = () => {
 
       <div className="container py-8">
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Sidebar */}
+          {/* 🎨 Enhanced Sidebar */}
           <div className="md:w-1/4">
-            <Card>
-              <CardHeader>
+            <Card className="bg-slate-800/80 backdrop-blur-sm border border-slate-600/50 shadow-xl">
+              <CardHeader className="bg-gradient-to-r from-slate-700/80 to-slate-600/80 rounded-t-lg">
                 <div className="flex flex-col items-center">
-                  <Avatar className="h-20 w-20 mb-4">
-                    <AvatarImage src={userData.avatarUrl} alt={userData.name} />
-                    <AvatarFallback>{getInitials(userData.name)}</AvatarFallback>
-                  </Avatar>
-                  <CardTitle>{userData.name}</CardTitle>
-                  <CardDescription>{userData.email}</CardDescription>
+                  <div className="relative group">
+                    <Avatar className="h-24 w-24 mb-4 ring-4 ring-white shadow-xl">
+                      <AvatarImage src={userData.avatarUrl} alt={userData.name} className="object-cover" />
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-2xl font-bold">
+                        {getInitials(userData.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {/* Profile picture overlay */}
+                    <div className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <span className="text-white text-xs font-medium">Profile Photo</span>
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-gray-100">{userData.name}</CardTitle>
+                  <CardDescription className="text-gray-300">{userData.email}</CardDescription>
                 </div>
               </CardHeader>
               <CardContent>
@@ -319,21 +350,29 @@ const Account = () => {
             </Card>
           </div>
 
-          {/* Main content */}
+          {/* 🎯 Enhanced Main Content */}
           <div className="flex-1">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="profile">Profile</TabsTrigger>
-                <TabsTrigger value="social">Social Accounts</TabsTrigger>
-                <TabsTrigger value="security">Security</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3 bg-slate-800/80 backdrop-blur-sm border border-slate-600/50 shadow-lg">
+                <TabsTrigger value="profile" className="text-gray-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">
+                  👤 Profile
+                </TabsTrigger>
+                <TabsTrigger value="social" className="text-gray-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">
+                  🔗 Social
+                </TabsTrigger>
+                <TabsTrigger value="security" className="text-gray-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">
+                  🔐 Security
+                </TabsTrigger>
               </TabsList>
 
-              {/* Profile Tab */}
-              <TabsContent value="profile">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Profile Information</CardTitle>
-                    <CardDescription>
+              {/* 🎨 Enhanced Profile Tab */}
+              <TabsContent value="profile" className="mt-6">
+                <Card className="bg-slate-800/80 backdrop-blur-sm border border-slate-600/50 shadow-xl">
+                  <CardHeader className="bg-gradient-to-r from-slate-700/80 to-slate-600/80 rounded-t-lg">
+                    <CardTitle className="text-2xl font-bold text-gray-100 flex items-center gap-2">
+                      👤 Profile Information
+                    </CardTitle>
+                    <CardDescription className="text-gray-300">
                       Update your personal information and public profile
                     </CardDescription>
                   </CardHeader>

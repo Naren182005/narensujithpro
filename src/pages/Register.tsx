@@ -171,22 +171,47 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        {/* Logo and branding */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 mb-3">
-            <Sparkles className="h-6 w-6 text-primary" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 p-4 relative overflow-hidden">
+      {/* 🌟 Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      </div>
+
+      {/* ✨ Floating Particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-white/30 rounded-full animate-float"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 4}s`
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        {/* 🎨 Enhanced Logo and Branding */}
+        <div className="text-center mb-8 animate-fade-in">
+          <div className="inline-flex items-center justify-center h-20 w-20 rounded-3xl bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 mb-6 shadow-2xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
+            <UserPlus className="h-10 w-10 text-white relative z-10 group-hover:scale-110 transition-transform duration-300 drop-shadow-lg" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
           </div>
-          <h1 className="text-2xl font-bold">{config.appName}</h1>
-          <p className="text-sm text-muted-foreground">Create your account</p>
+          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-purple-100 mb-2">{config.appName}</h1>
+          <p className="text-white/80 text-lg font-medium">Create your account</p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign Up</CardTitle>
-            <CardDescription>
-              Enter your information to create an account
+        <Card className="border-white/20 shadow-2xl animate-slide-up bg-white/10 backdrop-blur-xl">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-3xl font-bold text-white">Create Account</CardTitle>
+            <CardDescription className="text-white/80 text-lg">
+              Join SocialMuse and start creating amazing content
             </CardDescription>
           </CardHeader>
 
@@ -335,8 +360,8 @@ const Register = () => {
               </div>
             </div>
 
-            <div className="flex justify-center">
-              <div className="w-full max-w-xs">
+            <div className="flex justify-center px-4">
+              <div className="w-full max-w-sm">
                 <GoogleLoginButton
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
@@ -346,7 +371,7 @@ const Register = () => {
               </div>
             </div>
 
-            <div className="text-center mt-2">
+            <div className="text-center mt-6">
               <p className="text-sm text-muted-foreground">
                 Already have an account?{" "}
                 <Link
@@ -359,6 +384,39 @@ const Register = () => {
             </div>
           </CardFooter>
         </Card>
+
+        {/* 🎨 Enhanced CSS Animations */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @keyframes blob {
+              0% { transform: translate(0px, 0px) scale(1); }
+              33% { transform: translate(30px, -50px) scale(1.1); }
+              66% { transform: translate(-20px, 20px) scale(0.9); }
+              100% { transform: translate(0px, 0px) scale(1); }
+            }
+
+            @keyframes float {
+              0%, 100% { transform: translateY(0px); }
+              50% { transform: translateY(-20px); }
+            }
+
+            .animate-blob {
+              animation: blob 7s infinite;
+            }
+
+            .animate-float {
+              animation: float 6s ease-in-out infinite;
+            }
+
+            .animation-delay-2000 {
+              animation-delay: 2s;
+            }
+
+            .animation-delay-4000 {
+              animation-delay: 4s;
+            }
+          `
+        }} />
       </div>
     </div>
   );

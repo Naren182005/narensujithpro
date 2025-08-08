@@ -38,15 +38,25 @@ const Profile: React.FC = () => {
   useEffect(() => {
     const loadProfile = async () => {
       try {
+        // Debug authentication state
+        const isAuth = enhancedAuthService.isAuthenticated();
+        const currentUser = enhancedAuthService.getCurrentUser();
+        const accessToken = enhancedAuthService.getAccessToken();
+
+        console.log('🔍 Profile page debug:');
+        console.log('   Is authenticated:', isAuth);
+        console.log('   Current user:', currentUser);
+        console.log('   Access token:', !!accessToken);
+
         // Check if user is authenticated
-        if (!enhancedAuthService.isAuthenticated()) {
+        if (!isAuth) {
+          console.log('❌ User not authenticated, redirecting to login');
           toast.error('Please log in to view your profile');
           navigate('/login');
           return;
         }
 
         // Get current user from enhanced auth service
-        const currentUser = enhancedAuthService.getCurrentUser();
         if (currentUser) {
           setProfile({
             name: currentUser.name,
@@ -105,32 +115,54 @@ const Profile: React.FC = () => {
     }
   };
   
-  // Handle password change
+  // Enhanced password change with comprehensive validation
   const handlePasswordChange = async () => {
     try {
       setIsLoading(true);
-      
-      // Validate inputs
+
+      // Enhanced validation
       if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
-        toast.error('All fields are required');
+        toast.error('All password fields are required');
         return;
       }
-      
+
       if (passwordData.newPassword !== passwordData.confirmPassword) {
         toast.error('New passwords do not match');
         return;
       }
-      
-      if (passwordData.newPassword.length < 6) {
-        toast.error('New password must be at least 6 characters');
+
+      // Enhanced password strength validation
+      if (passwordData.newPassword.length < 8) {
+        toast.error('New password must be at least 8 characters long');
         return;
       }
-      
+
+      // Check for password complexity
+      const hasUpperCase = /[A-Z]/.test(passwordData.newPassword);
+      const hasLowerCase = /[a-z]/.test(passwordData.newPassword);
+      const hasNumbers = /\d/.test(passwordData.newPassword);
+      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(passwordData.newPassword);
+
+      if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
+        toast.error('Password must contain uppercase, lowercase, number, and special character');
+        return;
+      }
+
+      // Check if user is Google user
+      if (profile.loginMethod === 'google' && !passwordData.currentPassword) {
+        // For Google users without existing password, allow setting new password
+        console.log('🔑 Setting password for Google user');
+      }
+
+      console.log('🔄 Attempting password change...');
+
       // Use enhanced auth service to change password
       const response = await enhancedAuthService.changePassword(
         passwordData.currentPassword,
         passwordData.newPassword
       );
+
+      console.log('📝 Password change response:', response);
 
       if (response.success) {
         // Reset form
@@ -140,56 +172,94 @@ const Profile: React.FC = () => {
           confirmPassword: ''
         });
 
-        toast.success(response.message || 'Password changed successfully');
+        toast.success(response.message || 'Password changed successfully!');
+        console.log('✅ Password changed successfully');
       } else {
         throw new Error(response.message || 'Failed to change password');
       }
-    } catch (error) {
-      handleError(error);
+    } catch (error: any) {
+      console.error('❌ Password change error:', error);
+
+      // Enhanced error handling
+      if (error.message.includes('Current password is incorrect')) {
+        toast.error('Current password is incorrect');
+      } else if (error.message.includes('WEAK_PASSWORD')) {
+        toast.error('Password does not meet security requirements');
+      } else if (error.message.includes('USER_NOT_FOUND')) {
+        toast.error('User account not found');
+      } else {
+        toast.error(error.message || 'Failed to change password');
+      }
     } finally {
       setIsLoading(false);
     }
   };
   
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Profile Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your account settings and preferences
-        </p>
-      </div>
-      
-      <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="password">Password</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="profile" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
-                Update your personal information and profile settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src={profile.avatar} alt={profile.name} />
-                  <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div className="space-y-1">
-                  <h3 className="font-medium">{profile.name}</h3>
-                  <p className="text-sm text-muted-foreground">{profile.email}</p>
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 p-4">
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* 🎨 Enhanced Header */}
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg mb-4">
+            <User className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Account Settings
+          </h1>
+          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+            Manage your profile, security settings, and account preferences
+          </p>
+        </div>
+
+        {/* 🎯 Enhanced Navigation Tabs */}
+        <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2 bg-slate-800/80 backdrop-blur-sm border border-slate-600/50 shadow-lg">
+            <TabsTrigger value="profile" className="text-gray-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">
+              👤 Profile
+            </TabsTrigger>
+            <TabsTrigger value="password" className="text-gray-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">
+              🔐 Security
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="profile" className="mt-8">
+            <Card className="bg-slate-800/80 backdrop-blur-sm border border-slate-600/50 shadow-xl">
+              <CardHeader className="bg-gradient-to-r from-slate-700/80 to-slate-600/80 rounded-t-lg">
+                <CardTitle className="text-2xl font-bold text-gray-100 flex items-center gap-2">
+                  👤 Profile Information
+                </CardTitle>
+                <CardDescription className="text-gray-300">
+                  Update your personal information and profile settings
+                </CardDescription>
+              </CardHeader>
+            <CardContent className="space-y-8 p-8">
+              {/* 🎨 Enhanced Profile Header */}
+              <div className="flex flex-col sm:flex-row gap-8 items-start sm:items-center">
+                <div className="relative group">
+                  <Avatar className="h-24 w-24 ring-4 ring-white shadow-xl">
+                    <AvatarImage src={profile.avatar} alt={profile.name} className="object-cover" />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-2xl font-bold">
+                      {profile.name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  {/* Profile picture overlay */}
+                  <div className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <span className="text-white text-xs font-medium">Google Photo</span>
+                  </div>
+                </div>
+                <div className="space-y-3 flex-1">
+                  <h3 className="text-2xl font-bold text-gray-100">{profile.name}</h3>
+                  <p className="text-gray-300 text-lg">{profile.email}</p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm ${
                       profile.loginMethod === 'google'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-green-100 text-green-800'
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                        : 'bg-gradient-to-r from-green-500 to-green-600 text-white'
                     }`}>
                       {profile.loginMethod === 'google' ? '🔗 Google Account' : '📧 Email Account'}
+                    </span>
+                    <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+                      ✅ Verified
                     </span>
                   </div>
                 </div>
@@ -265,12 +335,14 @@ const Profile: React.FC = () => {
           </Card>
         </TabsContent>
         
-        <TabsContent value="password" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Change Password</CardTitle>
-              <CardDescription>
-                Update your password to keep your account secure
+        <TabsContent value="password" className="mt-8">
+          <Card className="bg-slate-800/80 backdrop-blur-sm border border-slate-600/50 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-slate-700/80 to-slate-600/80 rounded-t-lg">
+              <CardTitle className="text-2xl font-bold text-gray-100 flex items-center gap-2">
+                🔐 Security Settings
+              </CardTitle>
+              <CardDescription className="text-gray-300">
+                Update your password and security preferences
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -282,9 +354,12 @@ const Profile: React.FC = () => {
                       Google Account
                     </p>
                   </div>
-                  <p className="text-xs text-blue-600 mt-1">
-                    You signed in with Google. You can still set a password for additional security.
+                  <p className="text-xs text-blue-700 mt-2 leading-relaxed">
+                    You can set a password for additional security. Leave current password empty if you don't have one yet.
                   </p>
+                  <div className="mt-2 text-xs text-blue-600">
+                    💡 <strong>Tip:</strong> Adding a password allows you to sign in with email if Google is unavailable.
+                  </div>
                 </div>
               )}
 
@@ -311,7 +386,7 @@ const Profile: React.FC = () => {
                     id="new-password"
                     type="password"
                     className="pl-10"
-                    placeholder="Enter new password (min. 6 characters)"
+                    placeholder="Enter new password (min. 8 characters)"
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                   />
@@ -364,7 +439,8 @@ const Profile: React.FC = () => {
             </CardFooter>
           </Card>
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 };

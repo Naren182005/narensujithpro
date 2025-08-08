@@ -35,7 +35,9 @@ class EnhancedAuthService {
   private readonly API_BASE = 'http://localhost:3001/api';
   private readonly USERS_KEY = 'temp_users';
   private readonly CURRENT_USER_KEY = 'current_user';
-  private readonly AUTH_TOKEN_KEY = 'authToken';
+  private readonly ACCESS_TOKEN_KEY = 'accessToken';
+  private readonly REFRESH_TOKEN_KEY = 'refreshToken';
+  private readonly REMEMBER_ME_KEY = 'rememberMe';
   private useDatabaseFallback = true;
 
   private constructor() {}
@@ -52,12 +54,24 @@ class EnhancedAuthService {
    */
   private async isBackendAvailable(): Promise<boolean> {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+
       const response = await fetch(`${this.API_BASE}/health`, {
         method: 'GET',
-        timeout: 3000
-      } as any);
-      return response.ok;
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Backend available:', data.message);
+        return true;
+      }
+      return false;
     } catch (error) {
+      console.log('⚠️ Backend not available, using localStorage fallback');
       return false;
     }
   }
@@ -129,21 +143,32 @@ class EnhancedAuthService {
           body: JSON.stringify({ name, email, password }),
         });
 
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Server returned non-JSON response');
+        }
+
         const data = await response.json();
 
-        if (response.ok) {
-          // Store token and user data
-          localStorage.setItem(this.AUTH_TOKEN_KEY, data.token);
+        if (response.ok && data.success) {
+          // Store JWT tokens and user data
+          localStorage.setItem(this.ACCESS_TOKEN_KEY, data.accessToken);
+          localStorage.setItem(this.REFRESH_TOKEN_KEY, data.refreshToken);
           localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(data.user));
           localStorage.setItem('userProfile', JSON.stringify(data.user));
+          localStorage.setItem('lastLoginTime', Date.now().toString());
 
+          console.log('✅ Backend registration successful');
           return {
             success: true,
             user: data.user,
+            token: data.accessToken,
             token: data.token,
             message: 'Registration successful!'
           };
         } else {
+          console.log('❌ Backend registration failed:', data.message);
           throw new Error(data.error || 'Registration failed');
         }
       }
@@ -181,7 +206,8 @@ class EnhancedAuthService {
 
       // Generate token and set current user
       const token = this.generateToken();
-      localStorage.setItem(this.AUTH_TOKEN_KEY, token);
+      localStorage.setItem(this.ACCESS_TOKEN_KEY, token);
+      localStorage.setItem(this.REFRESH_TOKEN_KEY, token); // Use same token for fallback
       localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(newUser));
       localStorage.setItem('userProfile', JSON.stringify(newUser));
 
@@ -203,7 +229,7 @@ class EnhancedAuthService {
   /**
    * Login with email and password
    */
-  public async login(email: string, password: string): Promise<AuthResponse> {
+  public async login(email: string, password: string, rememberMe: boolean = false): Promise<AuthResponse> {
     try {
       // Try backend first
       if (this.useDatabaseFallback && await this.isBackendAvailable()) {
@@ -212,26 +238,36 @@ class EnhancedAuthService {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email, password, rememberMe }),
         });
+
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Server returned non-JSON response');
+        }
 
         const data = await response.json();
 
-        if (response.ok) {
-          // Store token and user data
-          localStorage.setItem(this.AUTH_TOKEN_KEY, data.token);
+        if (response.ok && data.success) {
+          // Store JWT tokens and user data
+          localStorage.setItem(this.ACCESS_TOKEN_KEY, data.accessToken);
+          localStorage.setItem(this.REFRESH_TOKEN_KEY, data.refreshToken);
           localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(data.user));
           localStorage.setItem('userProfile', JSON.stringify(data.user));
           localStorage.setItem('lastLoginTime', Date.now().toString());
+          localStorage.setItem(this.REMEMBER_ME_KEY, rememberMe.toString());
 
+          console.log('✅ Backend login successful');
           return {
             success: true,
             user: data.user,
-            token: data.token,
-            message: 'Login successful!'
+            token: data.accessToken,
+            message: data.message || 'Login successful!'
           };
         } else {
-          throw new Error(data.error || 'Login failed');
+          console.log('❌ Backend login failed:', data.message);
+          throw new Error(data.message || data.error || 'Login failed');
         }
       }
 
@@ -268,7 +304,8 @@ class EnhancedAuthService {
       const userWithoutPassword = { ...user };
       delete userWithoutPassword.password;
 
-      localStorage.setItem(this.AUTH_TOKEN_KEY, token);
+      localStorage.setItem(this.ACCESS_TOKEN_KEY, token);
+      localStorage.setItem(this.REFRESH_TOKEN_KEY, token); // Use same token for fallback
       localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(userWithoutPassword));
       localStorage.setItem('userProfile', JSON.stringify(userWithoutPassword));
       localStorage.setItem('lastLoginTime', Date.now().toString());
@@ -307,7 +344,7 @@ class EnhancedAuthService {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem(this.AUTH_TOKEN_KEY)}`
+            'Authorization': `Bearer ${this.getAccessToken()}`
           },
           body: JSON.stringify({ currentPassword, newPassword }),
         });
@@ -520,21 +557,35 @@ class EnhancedAuthService {
           }),
         });
 
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Server returned non-JSON response');
+        }
+
         const data = await response.json();
 
-        if (response.ok) {
-          localStorage.setItem(this.AUTH_TOKEN_KEY, data.token);
+        if (response.ok && data.success) {
+          // Store JWT tokens properly
+          localStorage.setItem(this.ACCESS_TOKEN_KEY, data.accessToken || data.token);
+          localStorage.setItem(this.REFRESH_TOKEN_KEY, data.refreshToken || data.token);
           localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(data.user));
           localStorage.setItem('userProfile', JSON.stringify(data.user));
           localStorage.setItem('lastLoginTime', Date.now().toString());
           localStorage.setItem('loginMethod', 'google');
 
+          console.log('✅ Backend Google auth successful');
+          console.log('🔑 Access token stored:', !!(data.accessToken || data.token));
+          console.log('👤 User data stored:', !!data.user);
+
           return {
             success: true,
             user: data.user,
-            token: data.token,
-            message: 'Google authentication successful!'
+            token: data.accessToken || data.token,
+            message: data.message || 'Google authentication successful!'
           };
+        } else {
+          console.log('❌ Backend Google auth failed, using fallback');
         }
       }
 
@@ -546,8 +597,11 @@ class EnhancedAuthService {
       
       if (user) {
         // Update existing user with Google info
-        user.picture = googleUser.picture;
+        user.name = googleUser.name; // Update name in case it changed
+        user.picture = googleUser.picture || user.picture; // Keep existing if no new picture
+        user.googleId = googleUser.id;
         user.loginMethod = 'google';
+        user.authProvider = 'google';
         user.lastLogin = new Date().toISOString();
       } else {
         // Create new user
@@ -555,8 +609,10 @@ class EnhancedAuthService {
           id: this.generateUserId(),
           name: googleUser.name,
           email: googleUser.email.toLowerCase(),
-          picture: googleUser.picture,
+          picture: googleUser.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(googleUser.name)}&background=6366f1&color=fff`,
+          googleId: googleUser.id,
           loginMethod: 'google',
+          authProvider: 'google',
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
           emailVerified: true
@@ -572,11 +628,16 @@ class EnhancedAuthService {
       const userWithoutPassword = { ...user };
       delete userWithoutPassword.password;
 
-      localStorage.setItem(this.AUTH_TOKEN_KEY, token);
+      // Store tokens properly for new system
+      localStorage.setItem(this.ACCESS_TOKEN_KEY, token);
+      localStorage.setItem(this.REFRESH_TOKEN_KEY, token); // Use same token for fallback
       localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(userWithoutPassword));
       localStorage.setItem('userProfile', JSON.stringify(userWithoutPassword));
       localStorage.setItem('lastLoginTime', Date.now().toString());
       localStorage.setItem('loginMethod', 'google');
+
+      console.log('✅ Google auth localStorage fallback successful');
+      console.log('👤 User data stored:', userWithoutPassword);
 
       return {
         success: true,
@@ -607,10 +668,10 @@ class EnhancedAuthService {
   }
 
   /**
-   * Check if user is authenticated
+   * Check if user is authenticated (legacy method - redirects to new method)
    */
   public isAuthenticated(): boolean {
-    const token = localStorage.getItem(this.AUTH_TOKEN_KEY);
+    const token = this.getAccessToken();
     const user = this.getCurrentUser();
     return !!(token && user);
   }
@@ -634,7 +695,7 @@ class EnhancedAuthService {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem(this.AUTH_TOKEN_KEY)}`
+            'Authorization': `Bearer ${this.getAccessToken()}`
           },
           body: JSON.stringify(updates),
         });
@@ -691,15 +752,87 @@ class EnhancedAuthService {
   }
 
   /**
-   * Logout user
+   * Refresh access token using refresh token
    */
-  public logout(): void {
-    localStorage.removeItem(this.AUTH_TOKEN_KEY);
-    localStorage.removeItem(this.CURRENT_USER_KEY);
-    localStorage.removeItem('userProfile');
-    localStorage.removeItem('loginMethod');
-    localStorage.removeItem('lastLoginTime');
-    console.log('User logged out');
+  public async refreshToken(): Promise<boolean> {
+    try {
+      const refreshToken = localStorage.getItem(this.REFRESH_TOKEN_KEY);
+      if (!refreshToken) {
+        return false;
+      }
+
+      const response = await fetch(`${this.API_BASE}/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        localStorage.setItem(this.ACCESS_TOKEN_KEY, data.accessToken);
+        localStorage.setItem(this.REFRESH_TOKEN_KEY, data.refreshToken);
+        console.log('✅ Token refreshed successfully');
+        return true;
+      } else {
+        console.log('❌ Token refresh failed');
+        this.logout();
+        return false;
+      }
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      this.logout();
+      return false;
+    }
+  }
+
+  /**
+   * Get current access token
+   */
+  public getAccessToken(): string | null {
+    return localStorage.getItem(this.ACCESS_TOKEN_KEY);
+  }
+
+  /**
+   * Check if user is authenticated
+   */
+  public isAuthenticated(): boolean {
+    const token = this.getAccessToken();
+    const user = this.getCurrentUser();
+    return !!(token && user);
+  }
+
+  /**
+   * Logout user with backend notification
+   */
+  public async logout(): Promise<void> {
+    try {
+      const token = this.getAccessToken();
+      if (token && await this.isBackendAvailable()) {
+        // Notify backend of logout
+        await fetch(`${this.API_BASE}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+    } catch (error) {
+      console.warn('Logout notification failed:', error);
+    } finally {
+      // Clear all stored data
+      localStorage.removeItem(this.ACCESS_TOKEN_KEY);
+      localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+      localStorage.removeItem(this.CURRENT_USER_KEY);
+      localStorage.removeItem('userProfile');
+      localStorage.removeItem('lastLoginTime');
+      localStorage.removeItem('loginMethod');
+      localStorage.removeItem(this.REMEMBER_ME_KEY);
+      console.log('✅ User logged out');
+    }
   }
 }
 

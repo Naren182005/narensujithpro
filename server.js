@@ -8,12 +8,41 @@ const { postToSocialMedia, postToMultiplePlatforms } = require('./server/social-
 const { summarizeText, generateContent } = require('./server/groq-service');
 const { sendWelcomeEmail } = require('./server/email-service');
 
+// Import database connection and routes
+const connectDB = require('./server/db/mongoose');
+const authRoutes = require('./server/routes/auth');
+const userRoutes = require('./server/routes/users');
+
 const app = express();
 const PORT = process.env.PORT || 3001; // Using port 3001 to match frontend expectations
 
+console.log('Starting server...');
+console.log('PORT:', PORT);
+
+// Initialize database connection with timeout
+const initializeDatabase = async () => {
+  try {
+    console.log('🔗 Attempting database connection...');
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Database connection timeout')), 10000)
+    );
+
+    await Promise.race([connectDB(), timeoutPromise]);
+    console.log('✅ Database connected successfully');
+    return true;
+  } catch (err) {
+    console.error('⚠️ Database connection failed:', err.message);
+    console.log('   Server will continue without database (using fallback storage)');
+    return false;
+  }
+};
+
+// Initialize database in background
+initializeDatabase();
+
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8080'],
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8080', 'http://localhost:5174'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -28,6 +57,10 @@ app.options('*', cors());
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
 });
+
+// Authentication routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
 // Content generation API
 app.post('/api/generate', async (req, res) => {
@@ -312,6 +345,46 @@ app.post('/api/auth/simulate', async (req, res) => {
     console.error(`Error simulating auth for ${platform}:`, error);
     res.status(500).json({ error: `Failed to simulate auth for ${platform}` });
   }
+});
+
+// Standard login endpoint (for enhanced auth service)
+app.post('/api/users/login', (req, res) => {
+  const { email, password } = req.body;
+
+  console.log('Standard login attempt:', { email });
+
+  // For demo purposes, accept any login with valid format
+  if (!email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email and password are required'
+    });
+  }
+
+  // Simple validation
+  if (password.length < 6) {
+    return res.status(400).json({
+      success: false,
+      message: 'Password must be at least 6 characters'
+    });
+  }
+
+  // Generate a fake token
+  const token = `demo_token_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+
+  // Return success with token
+  res.json({
+    success: true,
+    token,
+    user: {
+      id: Date.now().toString(),
+      email,
+      name: email.split('@')[0],
+      picture: 'https://via.placeholder.com/150',
+      role: 'user'
+    },
+    message: 'Login successful!'
+  });
 });
 
 // Direct login endpoint for the login page

@@ -132,7 +132,7 @@ const Login = () => {
       toast.info('Logging in...');
 
       // Use enhanced auth service
-      const response = await enhancedAuthService.login(values.email, values.password);
+      const response = await enhancedAuthService.login(values.email, values.password, values.rememberMe);
 
       if (response.success && response.user) {
         console.log('Login successful:', response.user);
@@ -281,11 +281,18 @@ const Login = () => {
             id: userInfo.sub,
             email: userInfo.email,
             name: userInfo.name,
-            picture: userInfo.picture,
+            picture: userInfo.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(userInfo.name)}&background=4285f4&color=fff`,
             given_name: userInfo.given_name,
             family_name: userInfo.family_name,
             verified_email: userInfo.email_verified,
           };
+
+          console.log('✅ Google user data extracted:', {
+            name: user.name,
+            email: user.email,
+            picture: user.picture,
+            verified: user.verified_email
+          });
         } catch (decodeError) {
           console.error('Failed to decode Google credential:', decodeError);
           throw new Error('Invalid Google credential received');
@@ -307,7 +314,7 @@ const Login = () => {
       }
 
       // Try to save to database, fallback to localStorage
-      let authResult;
+      let authResult: any;
       try {
         // Try backend authentication
         authResult = await enhancedAuthService.googleAuth(user);
@@ -327,10 +334,22 @@ const Login = () => {
         const authToken = authResult.token || `google_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
 
         localStorage.setItem('authToken', authToken);
-        localStorage.setItem('userProfile', JSON.stringify(user));
+
+        // Ensure profile picture is properly stored
+        const userWithPicture = {
+          ...authResult.user,
+          picture: authResult.user.picture || user.picture,
+          authProvider: 'google',
+          loginMethod: 'google'
+        };
+
+        localStorage.setItem('userProfile', JSON.stringify(userWithPicture));
+        localStorage.setItem('currentUser', JSON.stringify(userWithPicture));
         localStorage.setItem('googleCredential', credentialResponse?.credential || '');
         localStorage.setItem('lastLoginTime', Date.now().toString());
-        localStorage.setItem('loginMethod', credentialResponse?.credential ? 'google' : 'development');
+        localStorage.setItem('loginMethod', 'google');
+
+        console.log('✅ Profile picture stored:', userWithPicture.picture);
 
         // Update the AuthContext
         login(user);
@@ -388,21 +407,46 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        {/* Logo and branding */}
-        <div className="text-center mb-6 animate-fade-in">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 mb-4 shadow-glow">
-            <Sparkles className="h-8 w-8 text-primary animate-pulse-slow" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 p-4 relative overflow-hidden">
+      {/* 🌟 Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      </div>
+
+      {/* ✨ Floating Particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-white/30 rounded-full animate-float"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 4}s`
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        {/* 🎨 Enhanced Logo and Branding */}
+        <div className="text-center mb-8 animate-fade-in">
+          <div className="inline-flex items-center justify-center h-20 w-20 rounded-3xl bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 mb-6 shadow-2xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
+            <Sparkles className="h-10 w-10 text-white relative z-10 group-hover:scale-110 transition-transform duration-300 drop-shadow-lg" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
           </div>
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">{config.appName}</h1>
-          <p className="text-sm text-muted-foreground mt-1">Sign in to your account</p>
+          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-purple-100 mb-2">{config.appName}</h1>
+          <p className="text-white/80 text-lg font-medium">Sign in to your account</p>
         </div>
 
-        <Card className="border-border/40 shadow-lg animate-slide-up">
+        <Card className="border-white/20 shadow-2xl animate-slide-up bg-white/10 backdrop-blur-xl">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-3xl font-bold text-white">Welcome back</CardTitle>
+            <CardDescription className="text-white/80 text-lg">
               Choose your preferred sign-in method
             </CardDescription>
           </CardHeader>
@@ -686,8 +730,8 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="flex justify-center">
-              <div className="w-full max-w-xs">
+            <div className="flex justify-center px-4">
+              <div className="w-full max-w-sm">
                 <GoogleLoginButton
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
@@ -717,6 +761,39 @@ const Login = () => {
             </div>
           </CardFooter>
         </Card>
+
+        {/* 🎨 Enhanced CSS Animations */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @keyframes blob {
+              0% { transform: translate(0px, 0px) scale(1); }
+              33% { transform: translate(30px, -50px) scale(1.1); }
+              66% { transform: translate(-20px, 20px) scale(0.9); }
+              100% { transform: translate(0px, 0px) scale(1); }
+            }
+
+            @keyframes float {
+              0%, 100% { transform: translateY(0px); }
+              50% { transform: translateY(-20px); }
+            }
+
+            .animate-blob {
+              animation: blob 7s infinite;
+            }
+
+            .animate-float {
+              animation: float 6s ease-in-out infinite;
+            }
+
+            .animation-delay-2000 {
+              animation-delay: 2s;
+            }
+
+            .animation-delay-4000 {
+              animation-delay: 4s;
+            }
+          `
+        }} />
       </div>
     </div>
   );
