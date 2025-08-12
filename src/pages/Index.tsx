@@ -11,6 +11,7 @@ import { toast } from '@/components/ui/sonner';
 import { Sparkles, LogIn, AlertCircle, CheckCircle2, User, Loader2 } from 'lucide-react';
 import config from '@/config';
 import { SocialAuthPanel } from '@/components/SocialAuthPanel';
+import { useAuth } from '@/contexts/AuthContext';
 import { PlatformType } from '@/components/SocialAuthButton';
 import {
   Dialog,
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import SocialAccountsManager from '@/components/SocialAccountsManager';
 
 // Platform names
@@ -33,6 +35,9 @@ const platformNames: Record<PlatformType, string> = {
 };
 
 const Index = () => {
+  // Authentication context
+  const { isAuthenticated, user } = useAuth();
+
   // State for platform content
   const [linkedinContent, setLinkedinContent] = useState('');
   const [instagramContent, setInstagramContent] = useState('');
@@ -423,24 +428,35 @@ const Index = () => {
               <span className="inline-block h-2 w-2 rounded-full bg-green-500 pulse"></span>
               <span>AI Connected</span>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.location.href = '/login'}
-              className="gap-2 animated-button border-primary/20 hover:border-primary/40"
-            >
-              <LogIn className="h-4 w-4" />
-              <span className="hidden sm:inline">Login</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.location.href = '/account'}
-              className="gap-2 animated-button border-primary/20 hover:border-primary/40"
-            >
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Account</span>
-            </Button>
+            {!isAuthenticated ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.href = '/login'}
+                className="gap-2 animated-button border-primary/20 hover:border-primary/40"
+              >
+                <LogIn className="h-4 w-4" />
+                <span className="hidden sm:inline">Login</span>
+              </Button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.picture} alt={user?.name} />
+                  <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                    {user?.name?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.location.href = '/account'}
+                  className="gap-2 animated-button border-primary/20 hover:border-primary/40"
+                >
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">Account</span>
+                </Button>
+              </div>
+            )}
             <ThemeToggle />
           </div>
         </div>
@@ -568,9 +584,14 @@ const Index = () => {
         <footer className="mt-10 text-center text-sm text-muted-foreground">
           <p className="mb-2">SocialMuse © 2025 - The ultimate social media content generator</p>
           <div className="flex justify-center gap-4">
-            <a href="/login" className="hover:text-primary hover:underline">Login</a>
-            <a href="/register" className="hover:text-primary hover:underline">Register</a>
-            <a href="/account" className="hover:text-primary hover:underline">Account</a>
+            {!isAuthenticated ? (
+              <>
+                <a href="/login" className="hover:text-primary hover:underline">Login</a>
+                <a href="/register" className="hover:text-primary hover:underline">Register</a>
+              </>
+            ) : (
+              <a href="/account" className="hover:text-primary hover:underline">Account</a>
+            )}
           </div>
         </footer>
       </div>

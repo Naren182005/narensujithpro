@@ -1,18 +1,73 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+require('dotenv').config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:4173', 'http://127.0.0.1:4173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Add OPTIONS handling for preflight requests
+app.options('*', cors());
+
+// Database connection test
+const testDatabaseConnection = async () => {
+  try {
+    console.log('🔗 Testing database connection...');
+    const connectDB = require('./server/db/mongoose');
+    await connectDB();
+    console.log('✅ Database connected successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ Database connection failed:', error.message);
+    console.log('⚠️ Server will continue without database');
+    return false;
+  }
+};
+
+// Initialize database connection
+let dbConnected = false;
+testDatabaseConnection().then(connected => {
+  dbConnected = connected;
+});
+
 // Basic route
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Server is running' });
+  res.json({
+    status: 'ok',
+    message: 'Server is running',
+    database: dbConnected ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Database test endpoint
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const connectDB = require('./server/db/mongoose');
+    await connectDB();
+    res.json({
+      success: true,
+      message: 'Database connection successful',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Database connection failed',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Mock user data
@@ -22,13 +77,91 @@ const defaultUser = {
   email: 'naren1872005@gmail.com'
 };
 
-// Direct login endpoint
+// Google OAuth Authentication endpoint
+app.post('/api/auth/google', async (req, res) => {
+  try {
+    console.log('🔐 Google OAuth request received');
+    const { user, credential } = req.body;
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'User information is required'
+      });
+    }
+
+    console.log('👤 User info:', {
+      email: user.email,
+      name: user.name,
+      picture: user.picture ? 'provided' : 'not provided'
+    });
+
+    // Generate a token
+    const token = `google_token_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+
+    // Try to save user to database if connected
+    if (dbConnected) {
+      try {
+        const User = require('./server/models/User');
+
+        // Check if user exists
+        let existingUser = await User.findOne({ email: user.email });
+
+        if (existingUser) {
+          // Update existing user
+          existingUser.name = user.name;
+          existingUser.picture = user.picture;
+          existingUser.lastLogin = new Date();
+          await existingUser.save();
+          console.log('✅ Updated existing user in database');
+        } else {
+          // Create new user
+          const newUser = new User({
+            googleId: user.sub,
+            email: user.email,
+            name: user.name,
+            picture: user.picture,
+            lastLogin: new Date()
+          });
+          await newUser.save();
+          console.log('✅ Created new user in database');
+        }
+      } catch (dbError) {
+        console.warn('⚠️ Database save failed, continuing without persistence:', dbError.message);
+      }
+    }
+
+    // Return success response
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user.sub || Date.now().toString(),
+        email: user.email,
+        name: user.name,
+        picture: user.picture,
+        role: 'user'
+      },
+      message: 'Google authentication successful!'
+    });
+
+  } catch (error) {
+    console.error('❌ Google auth error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Authentication failed',
+      error: error.message
+    });
+  }
+});
+
+// Direct login endpoint (fallback)
 app.post('/api/users/direct-login', (req, res) => {
   console.log('Direct login request received:', req.body);
-  
+
   // Generate a simple token
   const token = 'demo-token-' + Date.now();
-  
+
   // Return user data and token
   res.json({
     user: defaultUser,

@@ -163,8 +163,7 @@ class EnhancedAuthService {
           return {
             success: true,
             user: data.user,
-            token: data.accessToken,
-            token: data.token,
+            token: data.token || data.accessToken,
             message: 'Registration successful!'
           };
         } else {
@@ -795,14 +794,7 @@ class EnhancedAuthService {
     return localStorage.getItem(this.ACCESS_TOKEN_KEY);
   }
 
-  /**
-   * Check if user is authenticated
-   */
-  public isAuthenticated(): boolean {
-    const token = this.getAccessToken();
-    const user = this.getCurrentUser();
-    return !!(token && user);
-  }
+
 
   /**
    * Logout user with backend notification

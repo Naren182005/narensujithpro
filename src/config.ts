@@ -37,7 +37,7 @@ type AppConfig = {
 // Configuration for different environments
 const config: AppConfig = {
   development: {
-    apiBaseUrl: 'http://localhost:3001/api',
+    apiBaseUrl: 'http://localhost:3000/api',
     frontendUrl: 'http://localhost:5173',
     appName: 'SocialMuse (Dev)',
     defaultUserProfile: {
@@ -81,7 +81,7 @@ const config: AppConfig = {
     },
   },
   test: {
-    apiBaseUrl: 'http://localhost:3001/api',
+    apiBaseUrl: 'http://localhost:3000/api',
     frontendUrl: 'http://localhost:5173',
     appName: 'SocialMuse (Test)',
     defaultUserProfile: {

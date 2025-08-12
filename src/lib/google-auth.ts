@@ -12,6 +12,7 @@ export interface GoogleUser {
   given_name?: string;
   family_name?: string;
   verified_email?: boolean;
+  loginMethod?: 'google' | 'email';
 }
 
 export interface GoogleAuthResponse {
@@ -79,6 +80,7 @@ class GoogleAuthService {
         given_name: userInfo.given_name,
         family_name: userInfo.family_name,
         verified_email: userInfo.email_verified,
+        loginMethod: 'google',
       };
 
       // Store authentication data
